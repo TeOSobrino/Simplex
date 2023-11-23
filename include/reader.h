@@ -4,7 +4,10 @@
 #include <string>
 #include <eigen-3.4.0/Eigen/Dense>
 
-using Eigen::MatrixXi;
+using Eigen::MatrixXi; //integer matrix with dynamic dimensions
+using Eigen::Matrix;
+using Eigen::Dynamic; 
+
 
 class reader{
 private:
