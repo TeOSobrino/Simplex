@@ -2,17 +2,16 @@
 #include <iostream>
 
 #include "reader.h"
+#include "simplex.h"
 
 int main (void)
 {   
     std::string path;
     std::cout << "Insert path to file" << std::endl;
 
+    Simplex s = Simplex();
+    s = s.solve();
 
-    reader r = reader();
-    MatrixXi m = r.readMatrix("/home/teo/Documents/4s/trablin/orig/t.txt");
-
-    std::cout << m;
 
     return 0;
 }

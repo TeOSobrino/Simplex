@@ -5,36 +5,57 @@
 #include <string>
 #include <vector>
 
-#include "reader.h"
+#include "simplex.h"
 
-MatrixXi reader::readMatrix(const std::string path)
-{
+Simplex Simplex::Reader::ReadMatrix(const std::string path)
+{   
+    Simplex s = Simplex();
     file_d.open(path, std::ios_base::in);
-    int rows, cols;
+    int rows, cols; // restrictions, variables
+    char ig;
     if (file_d.is_open()) {
         file_d >> rows >> cols;
     } else {
         std::cout << "Invalid path to file" << std::endl;
-        return MatrixXi();
+        return Simplex();
     }
-
+    std::cin >> ig;
     std::cout << rows << " " << cols << std::endl;
 
-    std::vector<int> matrix_entries; // holds the integers to become matrix
-    std::string matrix_row; // current line from file
-    std::string matrix_entry; // parsed integer from matrix_row
+    std::vector<float> matrix_entries; // holds the integers to become matrix
+    std::vector<float> cost_fnt; // holds the integers to become matrix
 
-    for (int i = 0; i <= rows; i++) {
-        getline(file_d, matrix_row);
-        std::stringstream matrixRowStringStream(matrix_row);
-
-        while (getline(matrixRowStringStream, matrix_entry, ' ')) 
-        // parses int separated by space
-        {
-            matrix_entries.push_back(stoi(matrix_entry)); // adds int to vector
-        }
+    ReadLineFiletoVec(cost_fnt);
+    ReadLineFiletoVec(cost_fnt);
+    for (int i = 0; i <= rows+1; i++) { //reads the cost and then n rows
+        ReadLineFiletoVec(matrix_entries);
     }
 
-    return Eigen::Map<Matrix<int, Dynamic, Dynamic, Eigen::RowMajor>>(
-        matrix_entries.data(), rows, cols); // converts array to row matrix
+    MatrixXf T = Eigen::Map<Matrix<float, Dynamic, Dynamic, Eigen::RowMajor>>(
+        matrix_entries.data(), rows, cols+1); // converts array to row matrix
+    
+    MatrixXf cst = Eigen::Map<Matrix<float, Dynamic, Dynamic, Eigen::RowMajor>>(
+        cost_fnt.data(), 1, cols); // converts array to row matrix
+    s.c = cst.row(0);
+    s.b = T.col(cols);
+    s.A = T.block(0,0, rows, cols);
+
+    s.restrictions = rows;
+    s.variables = cols;
+    
+    return s;
+}
+
+void Simplex::Reader::ReadLineFiletoVec(std::vector<float> &vec) 
+{
+    std::string matrix_row; // current line from file
+    std::string matrix_entry; // parsed integer from matrix_row
+    getline(file_d, matrix_row);
+
+    std::stringstream matrixRowStringStream(matrix_row);
+    while (getline(matrixRowStringStream, matrix_entry, ' ')) 
+    // parses int separated by space
+    {
+        vec.push_back(stoi(matrix_entry)); // adds int to vector
+    }
 }
