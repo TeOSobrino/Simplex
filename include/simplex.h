@@ -23,6 +23,7 @@ class Simplex
     ArrayXf c;   // objective function
     ArrayXf X;   // variables in the base (basic variables)
     ArrayXf c_r; // reduced costs
+    int iter_num;
 
     int restrictions;
     int variables;

@@ -6,12 +6,9 @@
 
 int main (void)
 {   
-    std::string path;
-    std::cout << "Insert path to file" << std::endl;
 
     Simplex s = Simplex();
     s = s.solve();
-
 
     return 0;
 }

@@ -113,16 +113,19 @@ void remove_row(Eigen::MatrixXf &matrix, unsigned int rowToRemove)
     matrix.conservativeResize(numRows, numCols);
 }
 
-Simplex::Simplex(){
-
+Simplex::Simplex():
+    iter_num{0}
+{
 };
 
 Simplex Simplex::solve()
 {
 
     Reader r = Reader();
-
-    Simplex s = r.ReadMatrix("/home/teo/Documents/4s/trablin/orig/t.txt");
+    std::string path;
+    std::cout << "Insert path to file" << std::endl;
+    std:: cin >> path;
+    Simplex s = r.ReadMatrix(path);
 
     s.SolveFirstPhase();
     s.SolveSecondPhase();
@@ -141,8 +144,9 @@ Simplex Simplex::solve()
             std::cout << ", ";
     }
     std::cout << ")\n";
-
     std::cout << "f(X) = " << -s.T.coeff(0, 0) << "\n";
+    std::cout << "Total number of iterations: " << s.iter_num << "\n";
+
 
     return s;
 }
@@ -158,7 +162,7 @@ ArrayXf Simplex::SolveTableau(MatrixXf &T, ArrayXf &b, ArrayXf &c, ArrayXf &X)
     int idx_enter_base = 0;
     int idx_remove_base = 0;
     while (idx_enter_base != -1) {
-
+        iter_num++;
         // apply bland's rule
         idx_enter_base = find_var_add_base(T.row(0));
         idx_remove_base = find_var_remove_base(T, idx_enter_base);

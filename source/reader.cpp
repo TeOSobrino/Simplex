@@ -19,7 +19,6 @@ Simplex Simplex::Reader::ReadMatrix(const std::string path)
         std::cout << "Invalid path to file" << std::endl;
         return Simplex();
     }
-    std::cin >> ig;
 
     std::vector<float> matrix_entries; // holds the integers to become matrix
     std::vector<float> cost_fnt; // holds the integers to become matrix
