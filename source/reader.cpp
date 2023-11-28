@@ -20,7 +20,6 @@ Simplex Simplex::Reader::ReadMatrix(const std::string path)
         return Simplex();
     }
     std::cin >> ig;
-    std::cout << rows << " " << cols << std::endl;
 
     std::vector<float> matrix_entries; // holds the integers to become matrix
     std::vector<float> cost_fnt; // holds the integers to become matrix

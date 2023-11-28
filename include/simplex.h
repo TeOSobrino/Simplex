@@ -16,6 +16,7 @@ using Eigen::MatrixXf; // integer matrix with dynamic dimensions
 class Simplex
 {
   private:
+    MatrixXf T;   // tableau
     MatrixXf A;   // restrictions
     MatrixXf B;   // base
     ArrayXf b;   // restriction costs
@@ -27,6 +28,9 @@ class Simplex
     int variables;
 
     ArrayXf SolveTableau(MatrixXf& A, ArrayXf& b, ArrayXf& c, ArrayXf& X);
+    MatrixXf BuildTableau(ArrayXf cst);
+    void UpdateTableau();
+
 
   public:
     Simplex();
