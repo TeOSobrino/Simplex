@@ -135,7 +135,7 @@ Simplex Simplex::solve()
     s.SolveFirstPhase();
     s.f_iter_n = s.iter_num;
     s.SolveSecondPhase();
-    s.s_iter_n = s.iter_num;
+    s.s_iter_n = s.iter_num - s.f_iter_n;
 
     // print solution
     std::cout << "Final Solution:\nX = (";
@@ -152,7 +152,9 @@ Simplex Simplex::solve()
     }
     std::cout << ")\n";
     std::cout << "f(X) = " << -s.T.coeff(0, 0) << "\n";
-    std::cout << "Total number of iterations: " << s.iter_num << "\n";
+    std::cout << "Number of iterations in first phase: " << s.f_iter_n 
+    << ". Number of iterations in second phase: " << s.s_iter_n << "\n";
+
 
 
     return s;
