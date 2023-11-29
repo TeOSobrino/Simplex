@@ -1,9 +1,10 @@
 #pragma once
-#include <eigen-3.4.0/Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+
 
 #include "reader.h"
 
@@ -24,11 +25,13 @@ class Simplex
     ArrayXf X;   // variables in the base (basic variables)
     ArrayXf c_r; // reduced costs
     int iter_num;
+    int f_iter_n;
+    int s_iter_n;
 
     int restrictions;
     int variables;
 
-    ArrayXf SolveTableau(MatrixXf& A, ArrayXf& b, ArrayXf& c, ArrayXf& X);
+    ArrayXf SolveTableau(MatrixXf& A, ArrayXf& c, ArrayXf& X);
     MatrixXf BuildTableau(ArrayXf cst);
     void UpdateTableau();
 

@@ -7,17 +7,14 @@ PROG = main.cpp
 DFLAGS = -g3 -Og -fsanitize=address -fstack-protector-all \
  -fstack-clash-protection -fasynchronous-unwind-tables -D_FORTIFY_SOURCE=2
 
-# CFLAGS = -g -lm -march=native -fomit-frame-pointer -O3 -ffp-contract=fast\
-#  -faggressive-loop-optimizations -ftree-vectorize -std=c++20\
-#  -Wall -Wextra -Wpedantic -pedantic -Wno-unused-parameter -Wno-unused-variable\
-#  -Wno-vla 
-
-CFLAGS = -g -lm -march=native
+CFLAGS = -g -lm -fomit-frame-pointer -O3 -ffp-contract=fast\
+ -faggressive-loop-optimizations -ftree-vectorize -std=c++20\
+ -Wall -Wextra -Wpedantic -pedantic -Wno-vla 
 
 VFLAGS = --show-leak-kinds=all --track-origins=yes --leak-check=full -s
 
 all:
-	@$(CC) -o $(BINARY) $(PROG) $(SOURCES) -I$(INCLUDES) $(CFLAGS)
+	@$(CC) -o $(BINARY) $(PROG) $(SOURCES) -I$(INCLUDES) $(CFLAGS) -L./eigen3
 run: 
 	@$(BINARY)
 valgrind: all clear 

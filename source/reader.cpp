@@ -1,4 +1,4 @@
-#include <eigen-3.4.0/Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -12,12 +12,12 @@ Simplex Simplex::Reader::ReadMatrix(const std::string path)
     Simplex s = Simplex();
     file_d.open(path, std::ios_base::in);
     int rows, cols; // restrictions, variables
-    char ig;
+    
     if (file_d.is_open()) {
         file_d >> rows >> cols;
     } else {
         std::cout << "Invalid path to file" << std::endl;
-        return Simplex();
+        exit(2);
     }
 
     std::vector<float> matrix_entries; // holds the integers to become matrix

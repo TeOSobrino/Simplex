@@ -1,5 +1,5 @@
-#include <eigen-3.4.0/Eigen/Core>
-#include <eigen-3.4.0/Eigen/Dense>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
 #include <iostream>
 
 #include "simplex.h"
@@ -7,8 +7,6 @@
 // returns the first negative index or -1 if all are positive
 inline int find_var_add_base(ArrayXf a)
 {
-    int j = INT32_MAX;
-    int k = 0;
     for (int i = 1; i < a.size(); i++) {
         if (a[i] < 0)
             return i;
@@ -20,12 +18,17 @@ inline int find_var_add_base(ArrayXf a)
 // removes the smallest quocient between cost[i]/added_var[i]
 inline int find_var_remove_base(MatrixXf T, int in)
 {
-    float min = INT32_MAX;
+
+    double min = INT32_MAX;
+    double d;
     int idx = -1;
     for (int i = 1; i < T.col(0).size(); i++) {
-        if (T.coeff(i, in) <= 0)
+        if (T.coeff(i, in) <= 0){
             continue;
-        float d = T.coeff(i, 0) / T.coeff(i, in);
+
+        }
+        
+        d = (T.coeff(i, 0) / T.coeff(i, in));
         if (d < min) {
             min = d;
             idx = i;
@@ -85,7 +88,7 @@ inline void insert_in_base(MatrixXf &T, ArrayXf &X, int idx_enter_base,
 
 ArrayXf remove_item(ArrayXf &a, int posToRemove)
 {
-    float v[a.size()];
+    float *v = (float*) malloc(a.size()*sizeof(float));
 
     int j = 0;
     for (int i = 0; i < a.size(); i++) {
@@ -97,6 +100,8 @@ ArrayXf remove_item(ArrayXf &a, int posToRemove)
 
     Eigen::Map<ArrayXf> b(v, a.size() - 1);
     a = b;
+
+    free(v);
 
     return b;
 }
@@ -128,10 +133,12 @@ Simplex Simplex::solve()
     Simplex s = r.ReadMatrix(path);
 
     s.SolveFirstPhase();
+    s.f_iter_n = s.iter_num;
     s.SolveSecondPhase();
+    s.s_iter_n = s.iter_num;
 
     // print solution
-    std::cout << "X = (";
+    std::cout << "Final Solution:\nX = (";
     for (int i = 0; i < s.variables; i++) {
         auto pos = std::find(s.X.begin(), s.X.end(), i + 1);
         if (pos != s.X.end()) {
@@ -151,17 +158,17 @@ Simplex Simplex::solve()
     return s;
 }
 
-ArrayXf Simplex::SolveTableau(MatrixXf &T, ArrayXf &b, ArrayXf &c, ArrayXf &X)
+ArrayXf Simplex::SolveTableau(MatrixXf &T, ArrayXf &c, ArrayXf &X)
 {
     // calculates reduced cost based on cost array
     ArrayXXf cr = ReducedCost(T, c, X);
-
     // update reduced cost in the tableau
     T.topRows(1) = cr.transpose();
 
     int idx_enter_base = 0;
     int idx_remove_base = 0;
     while (idx_enter_base != -1) {
+        std::cout << "Current Tableau ("<< iter_num <<"):\n" << T << "\n\n";
         iter_num++;
         // apply bland's rule
         idx_enter_base = find_var_add_base(T.row(0));
@@ -196,15 +203,17 @@ ArrayXXf Simplex::SolveFirstPhase()
     T = BuildTableau(cst);
     
     // get the initial base (artifical variables for the first phase)
-    float data[restrictions];
+    float *data = (float *) malloc(restrictions*sizeof(float));
     for (int i = variables; i < variables + restrictions; i++) {
         data[i - variables] = i + 1;
     }
     Eigen::Map<ArrayXf> base(data, restrictions);
     ArrayXf bb = base;
 
-    X = SolveTableau(T, b, cst, bb);
+    X = SolveTableau(T, cst, bb);
     UpdateTableau();
+
+    free(data);
 
     return ArrayXXf();
 }
@@ -214,7 +223,7 @@ ArrayXXf Simplex::SolveSecondPhase()
     // update cost function to recalculate reduced costs
     ArrayXf cst = ArrayXf::Zero(variables + 1);
     cst.tail(variables) = c;
-    X = SolveTableau(T, b, cst, X);
+    X = SolveTableau(T, cst, X);
 
     return X;
 }
