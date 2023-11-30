@@ -8,7 +8,7 @@
 inline int find_var_add_base(ArrayXf a)
 {
     for (int i = 1; i < a.size(); i++) {
-        if (a[i] < 0)
+        if (a[i] < -EPS )
             return i;
     }
 
@@ -23,13 +23,13 @@ inline int find_var_remove_base(MatrixXf T, int in)
     double d;
     int idx = -1;
     for (int i = 1; i < T.col(0).size(); i++) {
-        if (T.coeff(i, in) <= 0){
+        if (T.coeff(i, in) <= EPS){
             continue;
 
         }
         
         d = (T.coeff(i, 0) / T.coeff(i, in));
-        if (d < min) {
+        if (d - EPS < min) {
             min = d;
             idx = i;
         }
@@ -155,8 +155,6 @@ Simplex Simplex::solve()
     std::cout << "Number of iterations in first phase: " << s.f_iter_n 
     << ". Number of iterations in second phase: " << s.s_iter_n << "\n";
 
-
-
     return s;
 }
 
@@ -191,7 +189,6 @@ ArrayXf Simplex::SolveTableau(MatrixXf &T, ArrayXf &c, ArrayXf &X)
 
 ArrayXXf Simplex::SolveFirstPhase()
 {
-
     // adapt the problem to the first phase
 
     // change cost function

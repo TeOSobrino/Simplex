@@ -8,6 +8,8 @@
 
 #include "reader.h"
 
+#define EPS 10E-8
+
 using Eigen::ArrayXf;
 using Eigen::ArrayXXf;
 using Eigen::Dynamic;
