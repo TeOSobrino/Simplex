@@ -10,11 +10,18 @@ def print_arr(size:int, arr):
     for i in range(0, size):
         print(arr[i])
 
+def criar_excel(tabela, nome):
+    # Convertendo a matriz NumPy para DataFrame
+    da = pd.DataFrame(tabela)
+
+    # Salvando o DataFrame em um arquivo Excel
+    da.to_excel(f"{nome}.xlsx", index=False)
+
 def main():
 
     #devolve uma tupla https://pypi.org/project/pysmps/ da p achar aqui  
     problema = smps.load_mps("/home/teo/Documents/4s/trablin/orig/t1.mps")
-    # problema = smps.load_mps("C:\\Users\\famde\\OneDrive\\Documentos\\Programacao\\t1.mps")
+    # problema = smps.load_mps("C:\\Users\\famde\\OneDrive\\Documentos\\Programacao\\t2.mps")
    
     tipos_restricao = problema[5] # tipo das restrições (eq, leq, geq, lt, gt)
     c = np.array(problema[6]) # função de custo (c)
@@ -65,13 +72,14 @@ def main():
         n_var += 1
         # adicionando mais uma coluna para a matriz A
         coluna = np.zeros(n_res)
-        coluna[indicie_restricao] = 1
-        A = np.insert(A, A.shape[1], coluna, axis=1)
         # adicionando variavel de folga no custo
         c = np.insert(c, c.shape[0], 0)
         # multiplicando a linha de A por -1 se for maior ou igual
         if restricao == 'G':
-            A[indicie_restricao] *= -1
+            coluna[indicie_restricao] = 1
+        else:
+            coluna[indicie_restricao] = -1
+        A = np.insert(A, A.shape[1], coluna, axis=1)
         
     
 
@@ -80,12 +88,12 @@ def main():
     # pprint(b)
     print(f"{n_var} {n_res}")
     
-    print(c)
     # Convertendo a matriz NumPy para DataFrame
-    df = pd.DataFrame(A)
+    da = pd.DataFrame(A)
 
     # Salvando o DataFrame em um arquivo Excel
-    df.to_excel("matriz_excel.xlsx", index=False)
+    da.to_excel("A.xlsx", index=False)
+    print(c)
     print(b)
     print(v_hi)
     print(v_lo)
