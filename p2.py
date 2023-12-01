@@ -6,23 +6,17 @@ from pysmps import smps_loader as smps
 from pprint import pprint
 import pandas as pd
 import numpy as np
+
 def print_arr(size:int, arr):
     for i in range(0, size):
-        print("%i" %arr[i], end=" ")
-    print("")
-
-def criar_excel(tabela, nome):
-    # Convertendo a matriz NumPy para DataFrame
-    da = pd.DataFrame(tabela)
-
-    # Salvando o DataFrame em um arquivo Excel
-    da.to_excel(f"{nome}.xlsx", index=False)
+        print("%i " %arr[i], end="")
+    print()
 
 def main():
 
     #devolve uma tupla https://pypi.org/project/pysmps/ da p achar aqui  
-    problema = smps.load_mps("/home/teo/Documents/4s/trablin/orig/tad.mps")
-    # problema = smps.load_mps("C:\\Users\\famde\\OneDrive\\Documentos\\Programacao\\t2.mps")
+    problema = smps.load_mps("/home/teo/Documents/4s/trablin/orig/t4.mps")
+    # problema = smps.load_mps("C:\\Users\\famde\\OneDrive\\Documentos\\Programacao\\t1.mps")
    
     tipos_restricao = problema[5] # tipo das restrições (eq, leq, geq, lt, gt)
     c = np.array(problema[6]) # função de custo (c)
@@ -40,14 +34,14 @@ def main():
     else:
         v_lo = []
         v_hi = []
-
+    
     n_var = A.shape[1]
     n_res = A.shape[0]
     
     # Trocando as restriçoes das variaveis para >= 0
     for index,(restricao_lo,restricao_hi) in enumerate(zip(v_lo,v_hi)):
         # se for menor que um finito, adicionar restricao 
-        if restricao_lo != 0:
+        if restricao_lo != np.inf and restricao_lo > 0:
             # adiciona linha na matriz A
             n_res += 1
             linha = np.zeros(n_var)
@@ -57,7 +51,7 @@ def main():
             b = np.insert(b, b.shape[0], restricao_lo)
             tipos_restricao.append('G')
         
-        if restricao_hi != np.inf:
+        if restricao_hi != np.inf and restricao_hi > 0:
             # adiciona linha na matriz A
             n_res += 1
             linha = np.zeros(n_var)
@@ -77,15 +71,14 @@ def main():
         n_var += 1
         # adicionando mais uma coluna para a matriz A
         coluna = np.zeros(n_res)
+        coluna[indicie_restricao] = 1
+        A = np.insert(A, A.shape[1], coluna, axis=1)
         # adicionando variavel de folga no custo
         c = np.insert(c, c.shape[0], 0)
         # multiplicando a linha de A por -1 se for maior ou igual
         if restricao == 'G':
-            coluna[indicie_restricao] = -1
-        else:
-            coluna[indicie_restricao] = 1
-        A = np.insert(A, A.shape[1], coluna, axis=1)
-            
+            A[indicie_restricao] *= -1
+
     # pprint(b)
     print(f"{n_res} {n_var}")
     
@@ -99,7 +92,7 @@ def main():
         for j in range(0, A.shape[1]):
             print("%i " %A[i][j], end="")
         print("%i" %b[i], end="")
-        print("\n", end="")
+        print("")
 
 if __name__ == "__main__": 
    main() 

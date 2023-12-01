@@ -25,7 +25,6 @@ inline int find_var_remove_base(MatrixXf T, int in)
     for (int i = 1; i < T.col(0).size(); i++) {
         if (T.coeff(i, in) <= EPS){
             continue;
-
         }
         
         d = (T.coeff(i, 0) / T.coeff(i, in));
@@ -137,6 +136,7 @@ Simplex Simplex::solve()
     s.SolveSecondPhase();
     s.s_iter_n = s.iter_num - s.f_iter_n;
 
+    std::cout << "Final Tableau:\n" << s.T << "\n";
     // print solution
     std::cout << "Final Solution:\nX = (";
     for (int i = 0; i < s.variables; i++) {
@@ -168,7 +168,6 @@ ArrayXf Simplex::SolveTableau(MatrixXf &T, ArrayXf &c, ArrayXf &X)
     int idx_enter_base = 0;
     int idx_remove_base = 0;
     while (idx_enter_base != -1) {
-        std::cout << "Current Tableau ("<< iter_num <<"):\n" << T << "\n\n";
         iter_num++;
         // apply bland's rule
         idx_enter_base = find_var_add_base(T.row(0));
