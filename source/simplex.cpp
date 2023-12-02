@@ -1,5 +1,8 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
+#include <chrono>
+#include <numeric>
+#include <vector>
 #include <iostream>
 
 #include "simplex.h"
@@ -125,10 +128,31 @@ Simplex Simplex::solve()
     Reader r = Reader();
     Simplex s = r.Read();
 
-    s.SolveFirstPhase();
-    s.f_iter_n = s.iter_num;
-    s.SolveSecondPhase();
-    s.s_iter_n = s.iter_num - s.f_iter_n;
+    double delta_t = 0;
+    std::vector<double> timer;
+
+    for(int i = 0; i < REPS; i++){
+        auto t_0 = std::chrono::high_resolution_clock::now();
+        s.SolveFirstPhase();
+        s.f_iter_n = s.iter_num;
+        s.SolveSecondPhase();
+        s.s_iter_n = s.iter_num - s.f_iter_n;
+        auto t_1 = std::chrono::high_resolution_clock::now();
+        delta_t = std::chrono::duration_cast<std::chrono::nanoseconds>(t_1 - t_0).count();
+        delta_t *= 1e-9;
+        timer.push_back(delta_t);
+    }
+
+    auto it = std::max_element(timer.begin(), timer.end());
+    timer.erase(it);
+    it = std::min_element(timer.begin(), timer.end());
+    timer.erase(it);
+
+    for(auto t : timer){
+        delta_t += t;
+    }
+    
+    std::cout << "\ntime: " << delta_t << " seconds.\n";
 
     // std::cout << "Final Tableau:\n" << s.T << "\n";
     // print solution
@@ -178,12 +202,9 @@ ArrayXf Simplex::SolveTableau(MatrixXf &T, ArrayXf &c, ArrayXf &X)
     double max = T.maxCoeff();
     double min = find_smallest_abs(T);
 
-    printf("min = %lf, max = %lf\n", min, max);
-
     //mudando esse 1E-3 para 1E-5 funciona nos casos que não funcionar esse,
     // notadamente o problema agg2, e melhores resultados para outros
-    EPS = std::max(1E-5, std::abs<double>(min/((max*max*max))));
-    printf("EPS = %lf\n", EPS);
+    EPS = std::max(1E-3, std::abs<double>(min/((max*max*max))));
 
     int idx_enter_base = 0;
     int idx_remove_base = 0;
