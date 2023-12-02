@@ -7,6 +7,66 @@
 
 #include "simplex.h"
 
+std::string read_compressed_mps(std::string str)
+{
+    std::string s = "./build/decomp ";
+    s += str;
+    s += " > ";
+    std::string filename = "tests/decompressed/";
+
+    int idx = str.size()-1;
+    char q = str[idx];
+    
+    while(q != '/'){
+        idx--;
+        q = str[idx];
+    }
+
+    filename += str.substr(idx+1, str.size()-(idx+1));
+
+    s += filename;
+
+    if(system(s.c_str())) exit(1);
+
+    return filename;
+}
+
+void read_mps(std::string str)
+{
+
+    std::string s = "python3 build/p.py ";
+    s += str;
+    s += " > build/out.txt";
+    std::cout << s;
+    if(system(s.c_str())) exit(1);
+}
+
+Simplex Simplex::Reader::Read() 
+{
+    
+    char ans;
+    std::string path;
+
+    std::cout << "Do you want to read entry from mps or compressed mps file?" << 
+    "(c/y/n)";
+    std::cin >> ans;
+
+    std::cout << "Insert path to file" << std::endl;
+    std:: cin >> path;
+    switch (ans)
+    { 
+    case 'c':
+        path = read_compressed_mps(path);
+    case 'y':
+        read_mps(path);
+        return ReadMatrix("build/out.txt");
+    default:
+        break;
+    }
+
+    return  ReadMatrix(path);;
+}
+
 Simplex Simplex::Reader::ReadMatrix(const std::string path)
 {   
     Simplex s = Simplex();
@@ -54,6 +114,6 @@ void Simplex::Reader::ReadLineFiletoVec(std::vector<float> &vec)
     while (getline(matrixRowStringStream, matrix_entry, ' ')) 
     // parses int separated by space
     {
-        vec.push_back(stoi(matrix_entry)); // adds int to vector
+        vec.push_back(stof(matrix_entry)); // adds int to vector
     }
 }

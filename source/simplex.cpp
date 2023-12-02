@@ -5,10 +5,10 @@
 #include "simplex.h"
 
 // returns the first negative index or -1 if all are positive
-inline int find_var_add_base(ArrayXf a)
+inline int find_var_add_base(ArrayXf a, double EPS)
 {
     for (int i = 1; i < a.size(); i++) {
-        if (a[i] < -EPS )
+        if (a[i] < -EPS)
             return i;
     }
 
@@ -16,19 +16,19 @@ inline int find_var_add_base(ArrayXf a)
 }
 
 // removes the smallest quocient between cost[i]/added_var[i]
-inline int find_var_remove_base(MatrixXf T, int in)
+inline int find_var_remove_base(MatrixXf T, int in, double EPS)
 {
-
-    double min = INT32_MAX;
+    if(in == -1) return -1;
+    double min = (double) INT64_MAX;
     double d;
     int idx = -1;
     for (int i = 1; i < T.col(0).size(); i++) {
-        if (T.coeff(i, in) <= EPS){
+        if (T.coeff(i, in) < EPS) {
             continue;
         }
-        
-        d = (T.coeff(i, 0) / T.coeff(i, in));
-        if (d - EPS < min) {
+
+        d = (abs(T.coeff(i, 0))/ T.coeff(i, in));
+        if (d + EPS < min) {
             min = d;
             idx = i;
         }
@@ -87,7 +87,7 @@ inline void insert_in_base(MatrixXf &T, ArrayXf &X, int idx_enter_base,
 
 ArrayXf remove_item(ArrayXf &a, int posToRemove)
 {
-    float *v = (float*) malloc(a.size()*sizeof(float));
+    float *v = (float *)malloc(a.size() * sizeof(float));
 
     int j = 0;
     for (int i = 0; i < a.size(); i++) {
@@ -102,7 +102,7 @@ ArrayXf remove_item(ArrayXf &a, int posToRemove)
 
     free(v);
 
-    return b;
+    return a;
 }
 
 void remove_row(Eigen::MatrixXf &matrix, unsigned int rowToRemove)
@@ -117,26 +117,20 @@ void remove_row(Eigen::MatrixXf &matrix, unsigned int rowToRemove)
     matrix.conservativeResize(numRows, numCols);
 }
 
-Simplex::Simplex():
-    iter_num{0}
-{
-};
+Simplex::Simplex() : iter_num{0} {};
 
 Simplex Simplex::solve()
 {
 
     Reader r = Reader();
-    std::string path;
-    std::cout << "Insert path to file" << std::endl;
-    std:: cin >> path;
-    Simplex s = r.ReadMatrix(path);
+    Simplex s = r.Read();
 
     s.SolveFirstPhase();
     s.f_iter_n = s.iter_num;
     s.SolveSecondPhase();
     s.s_iter_n = s.iter_num - s.f_iter_n;
 
-    std::cout << "Final Tableau:\n" << s.T << "\n";
+    // std::cout << "Final Tableau:\n" << s.T << "\n";
     // print solution
     std::cout << "Final Solution:\nX = (";
     for (int i = 0; i < s.variables; i++) {
@@ -152,10 +146,26 @@ Simplex Simplex::solve()
     }
     std::cout << ")\n";
     std::cout << "f(X) = " << -s.T.coeff(0, 0) << "\n";
-    std::cout << "Number of iterations in first phase: " << s.f_iter_n 
-    << ". Number of iterations in second phase: " << s.s_iter_n << "\n";
+    std::cout << "Number of iterations in first phase: " << s.f_iter_n
+              << ". Number of iterations in second phase: " << s.s_iter_n
+              << "\n";
 
     return s;
+}
+
+float find_smallest_abs(MatrixXf T)
+{
+    float min = INT32_MAX;
+    for(int i = 0; i < T.col(0).size(); i++){
+        for(int j = 0; j < T.row(0).size(); j++){
+            float k = std::abs<float>(T.coeff(i, j)); 
+            if( k < min && k > 1E-8 ){
+                min = k;
+            }
+        }
+    }
+
+    return min;
 }
 
 ArrayXf Simplex::SolveTableau(MatrixXf &T, ArrayXf &c, ArrayXf &X)
@@ -165,22 +175,39 @@ ArrayXf Simplex::SolveTableau(MatrixXf &T, ArrayXf &c, ArrayXf &X)
     // update reduced cost in the tableau
     T.topRows(1) = cr.transpose();
 
+    double max = T.maxCoeff();
+    double min = find_smallest_abs(T);
+
+    printf("min = %lf, max = %lf\n", min, max);
+
+    //mudando esse 1E-3 para 1E-5 funciona nos casos que não funcionar esse,
+    // notadamente o problema agg2, e melhores resultados para outros
+    EPS = std::max(1E-5, std::abs<double>(min/((max*max*max))));
+    printf("EPS = %lf\n", EPS);
+
     int idx_enter_base = 0;
     int idx_remove_base = 0;
     while (idx_enter_base != -1) {
         iter_num++;
         // apply bland's rule
-        idx_enter_base = find_var_add_base(T.row(0));
-        idx_remove_base = find_var_remove_base(T, idx_enter_base);
+        idx_enter_base = find_var_add_base(T.row(0), EPS);
+        idx_remove_base = find_var_remove_base(T, idx_enter_base, EPS);
 
         // if there is a negative reduced cost and no available variable to exit
         // the base, the problem is unbounded
         if (idx_remove_base == -1 && idx_enter_base != -1) {
+            std::cout << "\nenter base: " << idx_enter_base
+                      << " exit base: " << idx_remove_base << "\n"
+                      << T << "\n";
             throw std::domain_error(
                 "Invalid restrictions (unbounded problem)\n");
             exit(1);
         }
         insert_in_base(T, X, idx_enter_base, idx_remove_base);
+
+        // if(iter_num%1 == 0){
+        //     //zero_eps(T);
+        // }
     }
 
     return X;
@@ -199,9 +226,9 @@ ArrayXXf Simplex::SolveFirstPhase()
 
     // build the tableau
     T = BuildTableau(cst);
-    
+
     // get the initial base (artifical variables for the first phase)
-    float *data = (float *) malloc(restrictions*sizeof(float));
+    float *data = (float *)malloc(restrictions * sizeof(float));
     for (int i = variables; i < variables + restrictions; i++) {
         data[i - variables] = i + 1;
     }
@@ -243,7 +270,7 @@ MatrixXf Simplex::BuildTableau(ArrayXf cst)
     return M;
 }
 
-void Simplex::UpdateTableau() 
+void Simplex::UpdateTableau()
 {
     MatrixXf updated_tableau(restrictions + 1, variables + 1);
     updated_tableau = T.block(0, 0, restrictions + 1, variables + 1);
@@ -257,10 +284,11 @@ void Simplex::UpdateTableau()
     }
 
     // checks if the solution is feasible
-    if (updated_tableau.col(0).size() <= restrictions) {
+    auto A = Eigen::FullPivLU<MatrixXf>(updated_tableau);
+    if (updated_tableau.col(0).size() < A.rank()) {
         throw std::domain_error("Invalid restrictions (infeasible solution)\n");
         exit(1);
     }
-    
+
     T = updated_tableau;
 }

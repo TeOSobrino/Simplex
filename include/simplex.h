@@ -6,10 +6,6 @@
 #include <vector>
 
 
-#include "reader.h"
-
-#define EPS 10E-8
-
 using Eigen::ArrayXf;
 using Eigen::ArrayXXf;
 using Eigen::Dynamic;
@@ -26,6 +22,7 @@ class Simplex
     ArrayXf c;   // objective function
     ArrayXf X;   // variables in the base (basic variables)
     ArrayXf c_r; // reduced costs
+    double EPS;
     int iter_num;
     int f_iter_n;
     int s_iter_n;
@@ -49,6 +46,7 @@ class Simplex
         std::fstream file_d;
 
       public:
+        Simplex Read();
         Simplex ReadMatrix(const std::string path);
         void ReadLineFiletoVec(std::vector<float> &vec);
     };
