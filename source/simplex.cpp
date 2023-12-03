@@ -204,7 +204,7 @@ ArrayXf Simplex::SolveTableau(MatrixXf &T, ArrayXf &c, ArrayXf &X)
 
     //mudando esse 1E-3 para 1E-5 funciona nos casos que não funcionar esse,
     // notadamente o problema agg2, e melhores resultados para outros
-    EPS = std::max(1E-3, std::abs<double>(min/((max*max*max))));
+    EPS = std::max(1E-5, std::abs<double>(min/((max*max*max))));
 
     int idx_enter_base = 0;
     int idx_remove_base = 0;

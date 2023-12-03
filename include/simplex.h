@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#define REPS 10 //10 repetitions for time mearument
+#define REPS 10 //10 repetitions for time measurement
 
 using Eigen::ArrayXf;
 using Eigen::ArrayXXf;
