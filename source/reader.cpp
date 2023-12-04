@@ -69,11 +69,12 @@ Simplex Simplex::Reader::Read()
         return ReadMatrix("build/out.txt");
         break;
     case 'h':
-        std::cout << "This program solves a lp problem using two phase Simplex "
+         std::cout << "This program solves a lp problem using two phase Simplex "
                   << "and Bland's rule.\nThe file containing the lp can be a "
                      "compressed mps ("
-                  << "c)\nregular mps (y)\nor txt specific format (n).\nThen "
-                     "insert the file path\n";
+                  << "c)\nregular mps (y)\nor txt specific format (n).\nAlso, the path must be"
+                     " in the format:\n/home/user/.../file"
+                     "\nTherefore\n";
         return Read();
     case 'n' :
         std::cout << "Insert path to file" << std::endl;
